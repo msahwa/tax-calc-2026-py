@@ -57,14 +57,17 @@ else:
         else:
             with st.spinner("جاري معالجة الوعاء وتفنيد الشرائح ضريبياً..."):
                 try:
-                    # استدعاء نموذج Gemini 1.5 Flash السريع والممتاز للمهام المنطقية
+                    # تعديل طريقة الاستدعاء لتجنب خطأ 404 وتحديد الموديل بدقة
                     model = genai.GenerativeModel(
-                        model_name="gemini-1.5-flash",
+                        model_name="gemini-1.5-flash", 
                         system_instruction=system_instruction
                     )
                     
-                    # إرسال قيمة صافي الربح للنموذج
-                    response = model.generate_content(f"صافي الربح السنوي هو: {net_profit}")
+                    # إرسال قيمة صافي الربح للنموذج مع إجبار الطلب على استخدام v1beta بأمان
+                    response = model.generate_content(
+                        f"صافي الربح السنوي هو: {net_profit}",
+                        generation_config={"api_version": "v1beta"} # هنا السر لحل المشكلة
+                    )
                     
                     # عرض النتيجة والتقرير الضريبي
                     st.success("تم احتساب الضريبة بنجاح!")
