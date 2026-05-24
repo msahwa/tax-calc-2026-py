@@ -4,23 +4,18 @@ from google.api_core import client_options
 
 # 1. إعدادات الصفحة البرمجية لواجهة التطبيق
 st.set_page_config(
-    page_title="حاسبة الضرائب المصرية الذكية 2025",
+    page_title="حاسبة الضرائب المصرية الذكية",
     page_icon="🇪🇬",
     layout="centered"
 )
 
-# عنوان التطبيق ومقدمة بسيطة
-st.title("🇪🇬 حاسبة ضريبة الدخل المصرية الذكية لعام 2025")
-st.write("أدخل صافي الربح السنوي ليقوم الذكاء الاصطناعي بتقسيم الشرائح وحساب الضريبة المستحقة فوراً.")
+# عنوان التطبيق وهويتك البصرية (يمكنك تغيير الاسم هنا كما تحب)
+st.title("🇪🇬 حاسبة ضريبة الدخل المصرية لعام 2025")
+st.write("المنظومة الرقمية الذكية لحساب الوعاء الضريبي وتفنيد الشرائح فوراً.")
 
-# 2. إدخال مفتاح الـ API بأمان من خلال الشريط الجانبي (Sidebar)
-st.sidebar.header("🔐 إعدادات الاتصال")
-API_KEY = st.sidebar.text_input("أدخل مفتاح Gemini API Key الخاص بك:", type="password")
-
-if not API_KEY:
-    st.info("💡 يرجى إدخال مفتاح Gemini API الخاص بك في الشريط الجانبي لتفعيل الحاسبة ذكياً.", icon="🔑")
-else:
-    # تهيئة مكتبة جوجل وتحديد إصدار الـ API (v1beta) في خيارات العميل لتفادي خطأ الـ 404 والـ Unknown field
+# 2. قراءة المفتاح السري تلقائياً من سيرفر المنصة دون إظهاره للمستخدم
+try:
+    API_KEY = st.secrets["GEMINI_API_KEY"]
     opts = client_options.ClientOptions(api_version="v1beta")
     genai.configure(api_key=API_KEY, client_options=opts)
     
@@ -51,24 +46,20 @@ else:
     """
 
     # 4. واجهة المستخدم لادخال البيانات
-    net_profit = st.number_input("صافي الربح السنوي الخاضع للضريبة (بالجنيه):", min_value=0.0, step=1000.0, format="%.2f")
+    net_profit = st.number_input("أدخل صافي الربح السنوي الخاضع للضريبة (بالجنيه):", min_value=0.0, step=1000.0, format="%.2f")
     
-    if st.button("احسب الضريبة المستحقة"):
+    if st.button("احسب الضريبة الآن"):
         if net_profit == 0:
-            st.warning("يرجى إدخال مبلغ أكبر من الصفر للحساب.")
+            st.warning("يرجى إدخال مبلغ أكبر من الصفر.")
         else:
             with st.spinner("جاري معالجة الوعاء وتفنيد الشرائح ضريبياً..."):
                 try:
-                    # استخدام الاسم الرسمي للموديل مع تمرير التعليمات
                     model = genai.GenerativeModel(
                         model_name="models/gemini-1.5-flash", 
                         system_instruction=system_instruction
                     )
-                    
-                    # إرسال قيمة صافي الربح بشكل مباشر ونظيف
                     response = model.generate_content(f"صافي الربح السنوي هو: {net_profit}")
                     
-                    # عرض النتيجة والتقرير الضريبي
                     st.success("تم احتساب الضريبة بنجاح!")
                     st.markdown("### 📊 التقرير الضريبي التفصيلي:")
                     st.write(response.text)
@@ -76,4 +67,7 @@ else:
                 except Exception as e:
                     st.error(f"حدث خطأ أثناء الاتصال بالخادم: {e}")
 
-st.caption("تم تطوير هذه الأداة كحل محاسبي ذكي بالاعتماد على بايثون ونماذج Gemini.")
+except Exception:
+    st.error("🔑 خطأ في التهيئة: لم يتم العثور على المفتاح السري في إعدادات المنصة المتقدمة.")
+
+st.caption("جميع الحقوق محفوظة © لمكتب المحاسبة والاستشارات الضريبية.")
